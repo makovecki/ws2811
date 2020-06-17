@@ -1,1 +1,1 @@
-"# ESP32 Visual Studio Code template for creating new projects" 
+# ESP32 Visual Studio Code template for creating new projects

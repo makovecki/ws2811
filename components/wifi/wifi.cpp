@@ -1,8 +1,11 @@
 #include "wifi.h"
+#include "tcpserver.h"
+#include "udpserver.h"
 #include "nvs_flash.h"
 #include "esp_wifi.h"
 #include <string>
 #include <iostream>
+#include <list>
 extern "C" {
    #include "string.h" 
 }
@@ -12,6 +15,8 @@ WiFi::~WiFi()
 
 }
 int WiFi::s_retry_num(0);
+std::list<TcpServer> WiFi::tcp_servers;
+std::list<UdpServer> WiFi::udp_servers;
 EventGroupHandle_t WiFi::wifi_event_group = xEventGroupCreate();
 void WiFi::EventHandler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data)
 {
@@ -29,6 +34,29 @@ void WiFi::EventHandler(void* arg, esp_event_base_t event_base, int32_t event_id
         s_retry_num = 0;
         xEventGroupSetBits(wifi_event_group, CONNECTED_BIT);
     }
+}
+void WiFi::WaitForConnection()
+{
+    xEventGroupWaitBits(wifi_event_group, CONNECTED_BIT, pdFALSE, pdTRUE, portMAX_DELAY);
+}
+void WiFi::WaitToConnectTask(void *pvParameters)
+{
+    EventBits_t connectedToAP = xEventGroupWaitBits(wifi_event_group, CONNECTED_BIT, pdFALSE, pdTRUE, portMAX_DELAY);
+    if (connectedToAP) 
+    {
+        std::cout << "Connected to WiFi!\n";
+        for (auto tcp : tcp_servers) tcp.Bind();
+        for (auto udp : udp_servers) udp.Bind();
+    };
+    vTaskDelete(NULL);
+}
+void WiFi::AddTcpServer(uint16_t port)
+{
+    tcp_servers.push_back(TcpServer(port));
+}
+void WiFi::AddUdpServer(uint16_t port)
+{
+    udp_servers.push_back(UdpServer(port));
 }
 WiFi::WiFi(/* args */)
 {
@@ -60,6 +88,5 @@ WiFi::WiFi(/* args */)
     ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config) );
     ESP_ERROR_CHECK(esp_wifi_start() );
 
-    EventBits_t connectedToAP = xEventGroupWaitBits(wifi_event_group, CONNECTED_BIT, pdFALSE, pdTRUE, portMAX_DELAY);
-    if (connectedToAP) std::cout <<"Connected...\n";
+    xTaskCreate(this->WaitToConnectTask, "waitConnect", 1024, this, 10, NULL);
 }

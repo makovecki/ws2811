@@ -55,5 +55,16 @@
             "command": "idf.py -b 921600 flash",
             "problemMatcher": []
         }
+        ,
+        {
+            "label": "flash monitor",
+            "type": "shell",
+            "isBackground": true,
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "command": "idf.py -b 921600 flash monitor",
+            "problemMatcher": []
+        }
     ]
 }

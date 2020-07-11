@@ -1,5 +1,4 @@
 #include "wifi.h"
-#include "tcpserver.h"
 #include "udpserver.h"
 #include "nvs_flash.h"
 #include "esp_wifi.h"
@@ -15,7 +14,6 @@ WiFi::~WiFi()
 
 }
 int WiFi::s_retry_num(0);
-std::list<TcpServer> WiFi::tcp_servers;
 std::list<UdpServer> WiFi::udp_servers;
 EventGroupHandle_t WiFi::wifi_event_group = xEventGroupCreate();
 void WiFi::EventHandler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data)
@@ -45,15 +43,11 @@ void WiFi::WaitToConnectTask(void *pvParameters)
     if (connectedToAP) 
     {
         std::cout << "Connected to WiFi!\n";
-        for (auto tcp : tcp_servers) tcp.Bind();
         for (auto udp : udp_servers) udp.Bind();
     };
     vTaskDelete(NULL);
 }
-void WiFi::AddTcpServer(uint16_t port)
-{
-    tcp_servers.push_back(TcpServer(port));
-}
+
 void WiFi::AddUdpServer(uint16_t port)
 {
     udp_servers.push_back(UdpServer(port));

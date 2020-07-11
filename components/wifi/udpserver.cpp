@@ -42,7 +42,25 @@ void UdpServer::ReceiveTask(void *pvParameters)
 
             std::copy(reply.begin(), reply.end(),tx_buffer);
             int err = sendto(udp->listen_sock, tx_buffer,sizeof(tx_buffer)/sizeof(*tx_buffer) , 0, (struct sockaddr *)&source_addr, sizeof(source_addr));
-            if (err < 0) std::cout << "Error sending to remote client!\n";
+            if (err < 0) {
+                if (rx_buffer[0] == 1)
+                {
+                    // OTA update retry send message when error
+                    udp->listen_sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
+                    struct sockaddr_in dest_addr;
+                    dest_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+                    dest_addr.sin_family = AF_INET;
+                    dest_addr.sin_port = htons(99);
+                    int e = bind(udp->listen_sock, (struct sockaddr *)&dest_addr, sizeof(dest_addr));
+                    if (e < 0) {
+                        std::cout << "Unable to bind!\n";
+                    }
+                    sendto(udp->listen_sock, tx_buffer,sizeof(tx_buffer)/sizeof(*tx_buffer) , 0, (struct sockaddr *)&source_addr, sizeof(source_addr));
+                    vTaskDelay(1000 / portTICK_PERIOD_MS);
+                    esp_restart();
+                }
+                std::cout << "Error sending to remote client!\n";
+            }
         } else 
         {
             std::cout << "Wrong message size ("<<len<<"!="<<((rx_buffer[1]<<8 ) + rx_buffer[2] +3 )<<")!\n";
@@ -58,7 +76,6 @@ void UdpServer::ReceiveTask(void *pvParameters)
             }
             
         }
-        //std::cout << "Received:"<< len << " from port:"<< ntohs(source_addr.sin_port)<<"\n";
     }
 
 }
@@ -82,7 +99,7 @@ void UdpServer::Bind()
         std::cout << "Unable to bind!\n";
     }
     
-    xTaskCreate(this->ReceiveTask, "udp_server", 1024 * 8, this, 10, NULL);
+    xTaskCreate(this->ReceiveTask, "udp_server", 1024 * 10, this, 10, NULL);
 }
 
 UdpServer::UdpServer(uint16_t port)

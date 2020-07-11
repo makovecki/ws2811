@@ -14,7 +14,13 @@ Ota::Ota()
 list<char> Ota::ProcessMessage(char *buffer,struct in_addr ip)
 {
     list<char> ret;
-    ota_update("https://Boris1:1973/");
+    char* url = substr(buffer,3, (buffer[1]<<8 ) + buffer[2]  );
+    bool updated =ota_update(url);//(substr(buffer,3, (buffer[1]<<8 ) + buffer[2]  ));
+    
+    if (!updated) {
+        string err = "OTA failed !";
+        for (char c: err) ret.push_back(c);
+    }
     //std::cout << "OTA update";
     //DoOTAUpdate(substr(buffer,3, (buffer[1]<<8 ) + buffer[2]  ));
     return ret;
@@ -28,11 +34,11 @@ char* Ota::substr(char* arr, int begin, int len)
     return res;
 }
 
-void Ota::DoOTAUpdate(char* url)
+bool Ota::DoOTAUpdate(char* url)
 {
     std::cout << url<<"\n";
     
-    ota_update(url);
+    return ota_update(url);
     
 }
 Ota::~Ota()

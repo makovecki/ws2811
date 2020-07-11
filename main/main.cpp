@@ -1,8 +1,6 @@
 #include "wifi.h"
 #include "esp_ota_ops.h"
-extern "C" {    
-        #include "otac.h"
-    };
+
 
  extern "C" void app_main()
 {
@@ -13,7 +11,7 @@ extern "C" {
     
     auto wifi =new WiFi();
     wifi->AddUdpServer(1977);
-
+ 
     
 
 

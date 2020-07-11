@@ -10,7 +10,7 @@ private:
 public:
     Ota(/* args */);
     list<char> ProcessMessage(char *buffer,struct in_addr ip);
-    void DoOTAUpdate(char* url);
+    bool DoOTAUpdate(char* url);
     ~Ota();
 };
 

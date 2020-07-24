@@ -17,8 +17,9 @@
     auto wifi =new WiFi();
     wifi->AddUdpServer(1977);
     
-    WS2811 ledStrip(GPIO_NUM_16,3, RMT_CHANNEL_0 );
-    for (int i = 0; i < 3; i++) ledStrip.SetPixel(i,255,255,255);
+    WS2811 ledStrip(GPIO_NUM_16,21, RMT_CHANNEL_0 );
+    for (int i = 0; i < 21; i++) ledStrip.SetPixel(i,255,255,255,255);
+
     ledStrip.Show();
 
 }

@@ -30,5 +30,5 @@ class WS2811 {
     public:
     WS2811(gpio_num_t gpioNum, uint16_t pixelCount, rmt_channel_t channel = RMT_CHANNEL_0);
     void Show();
-    void SetPixel(uint16_t index, uint8_t red, uint8_t green, uint8_t blue);
+    void SetPixel(uint16_t index, uint8_t dim, uint8_t red, uint8_t green, uint8_t blue);
 };

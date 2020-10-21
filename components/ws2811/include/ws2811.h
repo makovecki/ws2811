@@ -19,6 +19,8 @@ typedef struct {
 class WS2811 {
     private:
 	uint16_t       pixelCount;
+    uint8_t gamma_table[256];
+    void FillGammaTable(float gamma);
 	rmt_channel_t  channel;
 	uint8_t*       buffer;
     static uint32_t ws2812_t0h_ticks;

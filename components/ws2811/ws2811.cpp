@@ -3,6 +3,7 @@
 #include <driver/gpio.h>
 #include <iostream>
 #include <cstring>
+#include <math.h>
 
 uint32_t WS2811::ws2812_t0h_ticks = 0;
 uint32_t WS2811::ws2812_t1h_ticks = 0;
@@ -79,9 +80,14 @@ WS2811::WS2811(gpio_num_t pin, uint16_t pixelCount, rmt_channel_t channel) {
     ws2812_t1l_ticks = (uint32_t)(ratio * 550);
 
     rmt_translator_init(channel, WS2811_rmt_adapter);
-    //Clear();
+    FillGammaTable(2.8);
 }
-
+void WS2811::FillGammaTable(float gamma)
+{
+    for (uint16_t i = 0; i < 256; i++) { 
+        this->gamma_table[i] = (int)(powf((float)i / (float)255, gamma) * 255 + 0.5);
+    }
+}
 void WS2811::Clear()
 {
     memset(buffer, 0, pixelCount * 3);
@@ -99,12 +105,12 @@ void WS2811::Show()
    rmt_wait_tx_done(this->channel, pdMS_TO_TICKS(100)); 
 }
 
-void WS2811::SetPixel(uint16_t index, uint8_t dim, uint8_t red, uint8_t green, uint8_t blue)
+void WS2811::SetPixel(uint16_t index, uint8_t brightness, uint8_t red, uint8_t green, uint8_t blue)
 {
-    float procent = dim/255.0f;
+    float procent = brightness/255.0f;
 
     uint32_t start = index * 3;
-    buffer[start] = (uint8_t)(blue*procent);
-    buffer[start + 1] = (uint8_t)(red*procent);
-    buffer[start + 2] = (uint8_t)(green*procent);
+    buffer[start] = this->gamma_table[(uint8_t)(blue*procent)];
+    buffer[start + 1] = this->gamma_table[(uint8_t)(red*procent)];
+    buffer[start + 2] = this->gamma_table[(uint8_t)(green*procent)];
 }

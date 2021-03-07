@@ -5,6 +5,7 @@
 #include "freertos/queue.h"
 #include "driver/gpio.h"
 #include <iostream>
+#include <math.h>
 
 static xQueueHandle gpio_evt_queue = NULL;
 
@@ -15,7 +16,7 @@ void IRAM_ATTR Stairs::ISR_handler(void* arg)
 }
 void Stairs::ClearLights()
 {
-    for (int i = 0; i <= steps*leds4Step; i++) ledStrip->SetPixel(i,255,0,0,0);
+    ledStrip->Clear();
 }
 Direction Stairs::GetDirection(gpio_num_t pin)
 {
@@ -42,23 +43,108 @@ void Stairs::SensorTrigger(void* arg)
         }
     }
 }
+void Stairs::AnimationTask(void* arg)
+{
+    Stairs *stairs = static_cast<Stairs *>(arg);
+    stairs->Animate();
+    vTaskDelete(NULL);
+}
+void Stairs::AnimateDown()
+{
+    for (int i = steps-1; i>=0; i--) if (runAnimation) AnimateStepOn(i);
+}
+void Stairs::AnimateUp()
+{
+    for (int i = 0; i < steps; i++) if (runAnimation) AnimateStepOn(i);
+}
+
+void Stairs::AnimateStepOn(int step)
+{
+    int height = 0;
+    for (int i =1;i<100;i+=2) if (leds4Step>=i) height++; // calculate how many steps to turn all leds
+    int m = floor(leds4Step/2.0);
+    
+    for (int h = 0; h < height; h++)
+    {
+        int x = 0;
+        for (int xl0 = 0; xl0 < m-h; xl0++)
+        {
+            ledStrip->SetPixel(((step*leds4Step)+x),0,0,0,0);
+            x++;
+        }
+        for (int x1 = 0; x1 < (h*2)+1; x1++)
+        {
+            ledStrip->SetPixel(((step*leds4Step)+x),126,255,255,255);
+            x++;
+        }
+        for (int xr0 = 0; xr0 < m-h; xr0++)
+        {
+            ledStrip->SetPixel(((step*leds4Step)+x),0,0,0,0);
+            x++;
+        }
+        if (runAnimation) {
+            ledStrip->Show();
+            for (int j = 0; j < 10; j++) if (runAnimation) vTaskDelay(10 / portTICK_PERIOD_MS);
+           
+            
+        }
+
+    }
+    
+    
+    //std::cout << "step:" << step << " height:" << height << "-\n";
+}
+
+void Stairs::AnimateTestLights()
+{
+
+    int tail =0;
+    int distance = 10;
+
+    for (int head = 0; head < steps*leds4Step; head++)
+    {
+        if (i>distance) {
+            ledStrip->SetPixel(tail,0,0,0,0);
+            tail++:
+        }
+        
+        ledStrip->SetPixel(head,126,255,255,255);
+        vTaskDelay(50 / portTICK_PERIOD_MS);
+    }
+    
+}
+void Stairs::Animate()
+{
+    animationFinished = false;
+    runAnimation = true;
+    if (animateDirection == Up) AnimateUp();
+    if (animateDirection == Down) AnimateDown();
+    animationFinished = true;
+    animateDirection = Off;
+}
 void Stairs::StartAnimate()
 {
-    if (animateDirection == Up) std::cout << "Going UP";
-    if (animateDirection == Down) std::cout << "Going DOWN";
-    std::cout << "\n";
+    if (runAnimation)
+    {
+        runAnimation = false;
+        vTaskDelay(pdMS_TO_TICKS(100)); //wait for task to end
+    }
+    xTaskCreate(this->AnimationTask, "Animation Task", 2048, this, 10, NULL);
+
 }
 void Stairs::SetNewDirection(gpio_num_t pin)
 {
+    runAnimation = false;
     this->animateDirection = GetDirection(pin);
 }
 
 void Stairs::EndAnimate()
 {
-
+    animationFinished = true;
 }
 Stairs::Stairs(gpio_num_t pinOut,gpio_num_t pinSensorDown,gpio_num_t pinSensorUp,int steps, int leds4Step)
 {
+    animationFinished = true;
     ledStrip = new WS2811(pinOut, steps*leds4Step);
     this->steps = steps;
     this->leds4Step = leds4Step;

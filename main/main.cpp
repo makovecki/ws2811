@@ -16,24 +16,19 @@
     auto wifi =new WiFi();
     wifi->AddUdpServer(1977);
 
-    Stairs *stairs = new Stairs(GPIO_NUM_16,GPIO_NUM_17,GPIO_NUM_5,21,1);
-    stairs->ClearLights();
-   /* 
-    WS2811 ledStrip(GPIO_NUM_16,501, RMT_CHANNEL_0 );
+    Stairs *stairs = new Stairs(GPIO_NUM_16,GPIO_NUM_17,GPIO_NUM_5,16,19);
 
-    uint8_t brightness = 0;
-    bool up = true;
+    // test lights
     while (true)
     {
-        for (int i = 0; i <= 500; i++) ledStrip.SetPixel(i,brightness,255,255,255);
-        ledStrip.Show();
-
-        vTaskDelay(10 / portTICK_PERIOD_MS);
-        brightness += (up)?+1:-1;
-        if (brightness==255) up = false;
-        if (brightness==0) up = true;
+        stairs->ClearLights();
+        Stairs->AnimateTestLights();
     }
-    */
+    
+    
+    //stairs->SetNewDirection(GPIO_NUM_17);
+    //stairs->Animate();
+   
 
 
 }

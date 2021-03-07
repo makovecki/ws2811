@@ -27,10 +27,11 @@ class WS2811 {
     static uint32_t ws2812_t1h_ticks;
     static uint32_t ws2812_t0l_ticks;
     static uint32_t ws2812_t1l_ticks;
-    void Clear();
+    
     static void IRAM_ATTR WS2811_rmt_adapter(const void *src, rmt_item32_t *dest, size_t src_size,size_t wanted_num, size_t *translated_size, size_t *item_num);
     public:
     WS2811(gpio_num_t gpioNum, uint16_t pixelCount, rmt_channel_t channel = RMT_CHANNEL_0);
     void Show();
     void SetPixel(uint16_t index, uint8_t dim, uint8_t red, uint8_t green, uint8_t blue);
+    void Clear();
 };

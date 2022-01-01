@@ -65,7 +65,7 @@ WS2811::WS2811(gpio_num_t pin, uint16_t pixelCount, rmt_channel_t channel) {
     config.clk_div = 2; // set counter clock to 40MHz
 
     ESP_ERROR_CHECK(rmt_config(&config));
-	ESP_ERROR_CHECK(rmt_driver_install(channel, 0, 0));
+	ESP_ERROR_CHECK(rmt_driver_install(channel, 0, ESP_INTR_FLAG_IRAM));
 
     
     uint32_t counter_clk_hz = 0;

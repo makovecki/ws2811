@@ -19,11 +19,14 @@
     Stairs *stairs = new Stairs(GPIO_NUM_16,GPIO_NUM_17,GPIO_NUM_5,16,19);
 
     // test lights
-    while (true)
-    {
-        stairs->ClearLights();
-        Stairs->AnimateTestLights();
-    }
+    //while (true)
+    //{
+        //stairs->ClearLights();
+        //stairs->AnimateTestLights();
+        //stairs->StartAnimate();
+        
+    //}
+    //stairs->AnimateTestLights2();
     
     
     //stairs->SetNewDirection(GPIO_NUM_17);

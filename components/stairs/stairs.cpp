@@ -17,6 +17,7 @@ void IRAM_ATTR Stairs::ISR_handler(void* arg)
 void Stairs::ClearLights()
 {
     ledStrip->Clear();
+
 }
 Direction Stairs::GetDirection(gpio_num_t pin)
 {
@@ -84,7 +85,7 @@ void Stairs::AnimateStepOn(int step)
         }
         if (runAnimation) {
             ledStrip->Show();
-            for (int j = 0; j < 10; j++) if (runAnimation) vTaskDelay(10 / portTICK_PERIOD_MS);
+            if (runAnimation) vTaskDelay(10 / portTICK_PERIOD_MS);
            
             
         }
@@ -99,19 +100,43 @@ void Stairs::AnimateTestLights()
 {
 
     int tail =0;
-    int distance = 10;
+    int distance = 5;
 
     for (int head = 0; head < steps*leds4Step; head++)
     {
-        if (i>distance) {
+        if (head>distance) {
             ledStrip->SetPixel(tail,0,0,0,0);
-            tail++:
+            tail++;
         }
         
         ledStrip->SetPixel(head,126,255,255,255);
+        ledStrip->Show();
         vTaskDelay(50 / portTICK_PERIOD_MS);
     }
     
+}
+void Stairs::AnimateTestLights2()
+{
+    int state = 0;
+    int r = 255;
+    int g = 0;
+    int b = 0;
+    for (int head = 0; head < steps*leds4Step; head++)
+    { 
+        if (state == 0) { g=g+5; if (g==255) state = 1;}
+        if (state == 1) { r=r-5; if (r==0) state =2;}
+        if (state == 2) { b=b+5; if (b==255) state =3;}
+        if (state == 3) { g=g-5; if (g==0) state =4;}
+        if (state == 4) { r=r+5; if (r==255) state =5;}
+        if (state == 5) { b=b-5; if (b==0) state =0;}
+        ledStrip->SetPixel(head,100,255,255,255);
+        ledStrip->Show();
+        vTaskDelay(10 / portTICK_PERIOD_MS);
+    }
+
+    //vTaskDelay(10000 / portTICK_PERIOD_MS);
+
+    //ClearLights();
 }
 void Stairs::Animate()
 {
@@ -119,6 +144,9 @@ void Stairs::Animate()
     runAnimation = true;
     if (animateDirection == Up) AnimateUp();
     if (animateDirection == Down) AnimateDown();
+    
+    vTaskDelay(pdMS_TO_TICKS(20000));
+    ClearLights();
     animationFinished = true;
     animateDirection = Off;
 }
@@ -130,7 +158,8 @@ void Stairs::StartAnimate()
         vTaskDelay(pdMS_TO_TICKS(100)); //wait for task to end
     }
     xTaskCreate(this->AnimationTask, "Animation Task", 2048, this, 10, NULL);
-
+    
+   
 }
 void Stairs::SetNewDirection(gpio_num_t pin)
 {
@@ -157,6 +186,8 @@ Stairs::Stairs(gpio_num_t pinOut,gpio_num_t pinSensorDown,gpio_num_t pinSensorUp
     io_conf.pin_bit_mask = ((1ULL<<pinSensorDown) | (1ULL<<pinSensorUp));
     //set as input mode    
     io_conf.mode = GPIO_MODE_INPUT;
+    io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+    io_conf.pull_down_en = GPIO_PULLDOWN_ENABLE;
     gpio_config(&io_conf);
     //create a queue to handle gpio event from isr
     gpio_evt_queue = xQueueCreate(10, sizeof(uint32_t));

@@ -79,7 +79,7 @@ WiFi::WiFi(/* args */)
 	memcpy(wifi_config.sta.password, pwd.data(), pwd.size());
 
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
-    ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config) );
+    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config) );
     ESP_ERROR_CHECK(esp_wifi_start() );
 
     xTaskCreate(this->WaitToConnectTask, "waitConnect", 1024, this, 10, NULL);

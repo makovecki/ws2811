@@ -77,6 +77,7 @@ WiFi::WiFi(/* args */)
     memcpy(wifi_config.sta.ssid, ssid.data(), ssid.size());
     std::string pwd(CONFIG_ESP_WIFI_PASSWORD);
 	memcpy(wifi_config.sta.password, pwd.data(), pwd.size());
+    
 
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config) );

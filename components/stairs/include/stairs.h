@@ -32,6 +32,7 @@ public:
     void EndAnimate();
     bool HasDirectionChanged(gpio_num_t pin);
     void AnimateTestLights();
+    void AnimateTestLights2();
     ~Stairs();
 };
 
